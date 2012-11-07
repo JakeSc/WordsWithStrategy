@@ -155,6 +155,7 @@ Maple.Client = Class(function(update, render) {
         this._messageArray[0] = this.messageTypeToId(type);
         this._messageArray[1] = this.getTick();
         if (data !== undefined) {
+            this.log(data);
             this._messageArray.push.apply(this._messageArray, data);
         }
 

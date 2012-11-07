@@ -13,11 +13,115 @@
         <script type="text/javascript" charset="utf-8" src="../lib/jquery-1.8.2.min.js"></script>
 
         <style type="text/css">
+            * {
+                background-image: none;
+                color: #000;
+            }
+            body {
+                font-family: sans-serif;
+            }
+
+            div {
+                border-radius: 4px;
+            }
+
+            #wrapper {
+                overflow: auto;
+                width: 75%;
+                margin: 0 auto;
+            }
+
             #board {
-                width: 400px;
-                height: 400px;
+                float: left;
+                max-width: 300px;
+                max-height: 300px;
                 border: 2px solid black;
                 margin: 50px;
+            }
+
+            #board tr {
+
+            }
+
+            .tile {
+                /*width: 20%;*/
+                margin:0;
+                padding: 5px;
+                font-size: 48px;
+                background-color: #FFF;
+                font-family: sans-serif;
+                text-align: center;
+                font-weight: bold;
+                border-radius: 2px;
+                cursor: default;
+            }
+            #board tr:nth-child(odd) td:nth-child(even) {
+                background-color: #DDD;
+            }
+            #board tr:nth-child(even) td:nth-child(odd) {
+                background-color: #DDD;
+            }
+            #board tr:nth-child(odd) td:nth-child(even):hover {
+                background-color: #CCC;
+            }
+            #board tr:nth-child(even) td:nth-child(odd):hover {
+                background-color: #BBB;
+            }
+            #board tr td:hover {
+                background-color: #EEE;
+            }
+
+            #control {
+                overflow: auto;
+                float: right;
+            }
+
+            #submit {
+                visibility: hidden;
+                float: left;
+                margin: 10px;
+                padding: 10px;
+                font-size: 48px;
+                background-color: #9F9;
+                border: 1px solid #6C6;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            #submit:hover {
+                background-color: #6C6;
+            }
+
+            #message {
+                padding: 10px;
+                width: 80%;
+                margin: 10px auto;
+            }
+
+            .loading {
+                background: url(../img/ajax-loader.gif) no-repeat 0 0;
+                background-color: transparent;
+                border: none;
+            }
+
+            .good {
+                color: #6C6;
+                border: 1px solid #393;
+                background-color: #DFD;
+            }
+            .bad {
+                color: #C66;
+                border: 1px solid #933;
+                background-color: #FDD;
+            }
+
+            .mine {
+                background-color: #66C !important;
+            }
+            .theirs {
+                background-color: #C66 !important;
+            }
+            .neutral {
+                background-color: inherit;
             }
         </style>
 
@@ -25,6 +129,19 @@
 
     <body>
         <script type="text/javascript" charset="utf-8" src="client.js"></script>
+        <div id="wrapper">
+            <div id="message"> </div>
+            <div id="game">
+                <div id="control">
+                    <table>
+                        <tr id="entry">
+                        </tr>
+                    </table>
+                    <div id="submit">Submit</div>
+                    <div id="clientInfo"> </div>
+                </div>
+            </div>
+        </div>
     </body>
 
 </html>

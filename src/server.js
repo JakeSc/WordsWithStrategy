@@ -20,13 +20,18 @@
   * THE SOFTWARE.
   */
 var Maple = require('../Maple');
-
+var $ = require('jQuery');
 
 // Test -----------------------------------------------------------------------
 var TestServer = Maple.Class(function(clientClass) {
 
     Maple.Server(this, clientClass, [
-        'echo'
+        'echo',
+        'board',            // Initial board, like 4 4 M0S0B0R0K0E0N0L0E0S0O0V0A0Y0F0T0
+        'boardUpdate',      // Broadcast for when someone makes a move
+        'clientInfo',
+        'move',
+        'moveResponse'
     ]);
 
 }, Maple.Server, {
@@ -34,10 +39,11 @@ var TestServer = Maple.Class(function(clientClass) {
     started: function() {
         this.log('Started');
         this.generateBoard(this._boardWidth, this._boardHeight);
+        // this._clientIndex = 0;
     },
 
     update: function(t, tick) {
-        if (tick % 50 === 0) {
+        if (tick % 500 === 0) {
             this.broadcast('echo', ['Server', tick, this.getRandom()]);
         }
     },
@@ -48,11 +54,22 @@ var TestServer = Maple.Class(function(clientClass) {
 
     connected: function(client) {
         this.log('Client has connected:', client.id, client.isBinary);
-        client.send('echo', ['board', this._serializedBoard]);
+        client.send('clientInfo', [client._conn.clientId]);
+        client.send('board', [this._boardWidth + ' ' + this._boardHeight + ' ' + this._serializedBoard]);
     },
 
     message: function(client, type, tick, data) {
-        this.log('New Message received:', client, type, tick, data);
+        this.log('New Message received:', client._conn.clientId, type, data);
+        if (type === 'move' && data[0]) {
+            var moveIsValid = this._makeClientMove(client._conn.clientId, data[0]);
+
+            if (moveIsValid) {
+                client.send('moveResponse', ['1']);
+                this.broadcast('boardUpdate', [this._serializedBoard]);
+            } else {
+                client.send('moveResponse', ['0']);
+            }
+        }
     },
 
     requested: function(req, res) {
@@ -64,24 +81,41 @@ var TestServer = Maple.Class(function(clientClass) {
     },
 
 
-    _board: '',
-    _boardWidth: 3,
-    _boardHeight: 4,
+    _board: [],
+    _boardWidth: 4,
+    _boardHeight: 8,
     _serializedBoard: '',
+    _boardColors: [],
+
+    _playedWords: [],
 
     _serializeBoard: function() {
-        var string = this._boardWidth + ' ' + this._boardHeight + ' ';
+        var string = '';
+
+        // for (y=0; y < this._boardHeight; y++) {
+        //     string += this._board[y].join('');
+        // }
+        // for (i=1; i < this._boardHeight * this._boardWidth * 2; i += 2) {
+        //     string[i] = '_'
+        // }
 
         for (y=0; y < this._boardHeight; y++) {
-            string += this._board[y].join('');
+
+            for (x=0; x < this._boardWidth; x++) {
+                string += this._board[y][x];
+                string += this._boardColors[y][x];
+            }
         }
-        return string;
+
+        this.log('Serialized: '+ string);
+
+        this._serializedBoard = string;
     },
 
     generateBoard: function(width, height) {
 
         var letters = [];
-        var numVowels = Math.floor(Math.random()*4) + 3; // 3..7
+        var numVowels = Math.floor(Math.random()*4) + 4; // 4..8
 
         for (i=0; i < width*height - numVowels; i++) {
             letters.push(this._randomConsonant());
@@ -100,16 +134,18 @@ var TestServer = Maple.Class(function(clientClass) {
         for (y=0; y < height; y++) {
         
             this._board[y] = [];
+            this._boardColors[y] = [];
 
             for (x=0; x < width; x++) {
                 this._board[y][x] = letters.pop();
+                this._boardColors[y][x] = 0;
             }
 
         }
 
         this.log(this._board);
 
-        this._serializedBoard = this._serializeBoard();
+        this._serializeBoard();
     },
 
     _randomLetter: function() {
@@ -122,7 +158,40 @@ var TestServer = Maple.Class(function(clientClass) {
     _randomVowel: function() {
         var letters = 'AAEEIOU';
         return letters.charAt(Math.floor(Math.random()*letters.length));
-    }
+    },
+
+    _makeClientMove: function(clientID, letterIndexes) {
+        letterIndexes = letterIndexes.split(',');
+
+        this.log('letterIndexes: '+ letterIndexes);
+        this.log('board: '+ this._serializedBoard);
+
+        var letters = [];
+
+        for (var i=0; i < letterIndexes.length; i++) {
+            var boardIndex = letterIndexes[i];
+            var y = Math.floor(boardIndex / this._boardWidth);
+            var x = boardIndex % this._boardWidth;
+            //this.log('['+ boardIndex +']: ['+ y +', '+ x +']');
+            this._boardColors[y][x] = clientID;
+            letters.push(this._board[y][x]);
+        }
+
+        this.log("Client just played: " + letters);
+
+        letters = letters.join('');
+
+        if ($.inArray(letters, this._playedWords) != -1) {
+            this.log('already played');
+            return false;
+        }
+        this._playedWords.push(letters);
+        this.log(this._playedWords);
+
+        this._serializeBoard();
+
+        return true;
+    },
 
 });
 
@@ -141,7 +210,7 @@ var TestClient = Maple.Class(function(server, conn, isBinary) {
 
 var srv = new TestServer(TestClient);
 srv.start({
-    port: 4000,
-    logicRate: 10 // only update logic every 10 ticks
+    port: 80,
+    logicRate: 100 // only update logic every 10 ticks
 });
 
