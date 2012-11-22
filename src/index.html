@@ -23,6 +23,8 @@
 
             div {
                 border-radius: 4px;
+                background-color: inherit;
+                color: inherit;
             }
 
             #wrapper {
@@ -113,6 +115,11 @@
                 border: 1px solid #933;
                 background-color: #FDD;
             }
+            .info {
+                color: #CC6;
+                border: 1px solid #993;
+                background-color: #FFD;
+            }
 
             .mine {
                 background-color: #66C !important;
@@ -123,6 +130,28 @@
             .neutral {
                 background-color: inherit;
             }
+
+            strong {
+                color: inherit;
+            }
+
+            #pointTotals {
+                float: left;
+            }
+
+            #pointTotals .mine {
+
+            }
+
+            #pointTotals .playerID {
+                float: left;
+            }
+
+            #pointTotals .playerPoints {
+                float: right;
+                margin-left: 10px;
+            }
+
         </style>
 
     </head>
@@ -132,6 +161,9 @@
         <div id="wrapper">
             <div id="message"> </div>
             <div id="game">
+                <div id="pointTotals">
+                    
+                </div>
                 <div id="control">
                     <table>
                         <tr id="entry">
